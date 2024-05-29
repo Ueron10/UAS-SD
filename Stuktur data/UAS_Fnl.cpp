@@ -19,14 +19,15 @@ struct Item {
             name[i] = n[i];
             i++;
         }
-        name[i] = '\0';
+        name[i] = '\0'; 
     }
 };
 
+
 struct Category {
     char name[MAX_NAME_LENGTH];
-    Item* items;
-    Category* subcategories;
+    Item* items; 
+    Category* subcategories; 
     Category* next;
 
     Category(const char* n)
@@ -37,37 +38,6 @@ struct Category {
             i++;
         }
         name[i] = '\0';
-    }
-};
-
-// Structure for representing an edge in the graph
-struct Edge {
-    Category* source;
-    Category* destination;
-    Edge* next;
-
-    Edge(Category* src, Category* dest)
-        : source(src), destination(dest), next(nullptr) {}
-};
-
-// Structure for representing a graph (adjacency list implementation)
-struct Graph {
-    Category* categories; // Pointer to the first category in the graph
-    Edge* edges; // Pointer to the first edge in the graph
-
-    Graph() : categories(nullptr), edges(nullptr) {}
-
-    // Add a category to the graph
-    void addCategory(Category* category) {
-        category->next = categories;
-        categories = category;
-    }
-
-    // Add a relationship between two categories (create an edge)
-    void addRelationship(Category* source, Category* destination) {
-        Edge* newEdge = new Edge(source, destination);
-        newEdge->next = edges;
-        edges = newEdge;
     }
 };
 
@@ -86,7 +56,6 @@ struct Order {
         itemName[i] = '\0';
     }
 };
-
 struct StackNode {
     char action[MAX_NAME_LENGTH];
     char itemName[MAX_NAME_LENGTH];
@@ -139,13 +108,44 @@ struct Stack {
     void display() {
         StackNode* current = top;
         while (current) {
-            cout << "Action: " << current->action << ", Item: " << current->itemName << ", Quantity: " << current->quantity << endl;
+             cout << "Action: " << current->action << ", Item: " << current->itemName << ", Quantity: " << current->quantity <<  endl;
             current = current->next;
         }
     }
 };
 
-Graph categoryGraph; // Global graph to store category relationships
+// Structure for representing an edge in the graph
+struct Edge {
+    Category* source;
+    Category* destination;
+    Edge* next;
+
+    Edge(Category* src, Category* dest)
+        : source(src), destination(dest), next(nullptr) {}
+};
+
+// Structure for representing a graph (adjacency list implementation)
+struct Graph {
+    Category* categories; // Pointer to the first category in the graph
+    Edge* edges; // Pointer to the first edge in the graph
+
+    Graph() : categories(nullptr), edges(nullptr) {}
+
+    // Add a category to the graph
+    void addCategory(Category* category) {
+        category->next = categories;
+        categories = category;
+    }
+
+    // Add a relationship between two categories (create an edge)
+    void addRelationship(Category* source, Category* destination) {
+        Edge* newEdge = new Edge(source, destination);
+        newEdge->next = edges;
+        edges = newEdge;
+    }
+};
+
+Graph categoryGraph;
 Category* root = new Category("Root");
 Order* orderQueueHead = nullptr;
 Order* orderQueueTail = nullptr;
@@ -212,146 +212,144 @@ void addSubcategory(Category* category, Category* newCategory) {
 
 void addInventoryItem(Stack& actionLog) {
     int choice;
-    double itemPrice;
-    int itemQuantity;
+    double itemPrice; 
+    int itemQuantity; 
 
-    while (true) {
-        cout << "Pilih apa yang ingin ditambahkan:\n";
-        cout << "1. Kategori\n";
-        cout << "2. Subkategori\n";
-        cout << "3. Barang\n";
-        cout << "0. Kembali\n";
-        cout << "Pilihan: ";
-        cin >> choice;
-        cin.ignore();
+    while(true){
+    cout << "Pilih apa yang ingin ditambahkan:\n";
+    cout << "1. Kategori\n";
+    cout << "2. Subkategori\n";
+    cout << "3. Barang\n";
+    cout << "0. Kembali\n";
+    cout << "Pilihan: ";
+    cin >> choice;
+    cin.ignore();
+    
+    switch (choice) {
+        case 1: {
+            char categoryName[MAX_NAME_LENGTH];
+            cout << "Masukkan nama kategori baru: ";
+            cin.getline(categoryName, MAX_NAME_LENGTH);
 
-        switch (choice) {
-            case 1: {
-                char categoryName[MAX_NAME_LENGTH];
-                cout << "Masukkan nama kategori baru: ";
-                cin.getline(categoryName, MAX_NAME_LENGTH);
-
-                if (isStringEmptyOrSpacesOnly(categoryName)) {
-                    cout << "Nama kategori tidak boleh kosong atau hanya berisi spasi." << endl;
-                    return;
-                }
-
-                if (findCategory(root, categoryName)) {
-                    cout << "Kategori sudah ada." << endl;
-                    return;
-                }
-
-                Category* newCategory = new Category(categoryName);
-                addSubcategory(root, newCategory);
-                categoryGraph.addCategory(newCategory); // Add category to the graph
-                cout << "Kategori berhasil ditambahkan." << endl;
-                break;
+            if (isStringEmptyOrSpacesOnly(categoryName)) {
+                cout << "Nama kategori tidak boleh kosong atau hanya berisi spasi." << endl;
+                return;
             }
-            case 2: {
-                char parentCategoryName[MAX_NAME_LENGTH], subcategoryName[MAX_NAME_LENGTH];
-                cout << "Masukkan nama kategori induk: ";
-                cin.getline(parentCategoryName, MAX_NAME_LENGTH);
 
-                if (isStringEmptyOrSpacesOnly(parentCategoryName)) {
-                    cout << "Nama kategori induk tidak boleh kosong atau hanya berisi spasi." << endl;
+            if (findCategory(root, categoryName)) {
+                cout << "Kategori sudah ada." << endl;
+                return;
+            }
+
+            Category* newCategory = new Category(categoryName);
+            addSubcategory(root, newCategory);
+            cout << "Kategori berhasil ditambahkan." << endl;
+            categoryGraph.addCategory(newCategory);
+            break;
+        }
+        case 2: {
+            char parentCategoryName[MAX_NAME_LENGTH], subcategoryName[MAX_NAME_LENGTH];
+            cout << "Masukkan nama kategori induk: ";
+            cin.getline(parentCategoryName, MAX_NAME_LENGTH);
+
+            if (isStringEmptyOrSpacesOnly(parentCategoryName)) {
+                cout << "Nama kategori induk tidak boleh kosong atau hanya berisi spasi." << endl;
+                return;
+            }
+
+            Category* parentCategory = findCategory(root, parentCategoryName);
+
+            if (parentCategory) {
+                cout << "Masukkan nama subkategori baru: ";
+                cin.getline(subcategoryName, MAX_NAME_LENGTH);
+
+                if (isStringEmptyOrSpacesOnly(subcategoryName)) {
+                    cout << "Nama subkategori tidak boleh kosong atau hanya berisi spasi." << endl;
                     return;
                 }
 
-                Category* parentCategory = findCategory(root, parentCategoryName);
+                if (findCategory(parentCategory, subcategoryName)) {
+                    cout << "Subkategori sudah ada." << endl;
+                    return;
+                }
 
-                if (parentCategory) {
-                    cout << "Masukkan nama subkategori baru: ";
-                    cin.getline(subcategoryName, MAX_NAME_LENGTH);
+                Category* newSubcategory = new Category(subcategoryName);
+                addSubcategory(parentCategory, newSubcategory);
+                cout << "Subkategori berhasil ditambahkan." << endl;
+            } else {
+                cout << "Kategori induk tidak ditemukan." << endl;
+            }
+            break;
+        }
+        case 3: {
+            char categoryName[MAX_NAME_LENGTH], subcategoryName[MAX_NAME_LENGTH], itemName[MAX_NAME_LENGTH];
+            double itemPrice;
+            int itemQuantity;
 
-                    if (isStringEmptyOrSpacesOnly(subcategoryName)) {
-                        cout << "Nama subkategori tidak boleh kosong atau hanya berisi spasi." << endl;
+            cout << "Masukkan nama kategori: ";
+            cin.getline(categoryName, MAX_NAME_LENGTH);
+
+            if (isStringEmptyOrSpacesOnly(categoryName)) {
+                cout << "Nama kategori tidak boleh kosong atau hanya berisi spasi." << endl;
+                return;
+            }
+
+            Category* category = findCategory(root, categoryName);
+
+            if (category) {
+                cout << "Masukkan nama subkategori: ";
+                cin.getline(subcategoryName, MAX_NAME_LENGTH);
+
+                if (isStringEmptyOrSpacesOnly(subcategoryName)) {
+                    cout << "Nama subkategori tidak boleh kosong atau hanya berisi spasi." << endl;
+                    return;
+                }
+
+                Category* subcategory = findCategory(category, subcategoryName);
+
+                if (subcategory) {
+                    cout << "Masukkan nama barang: ";
+                    cin.getline(itemName, MAX_NAME_LENGTH);
+
+                    if (isStringEmptyOrSpacesOnly(itemName)) {
+                        cout << "Nama barang tidak boleh kosong atau hanya berisi spasi." << endl;
                         return;
                     }
 
-                    if (findCategory(parentCategory, subcategoryName)) {
-                        cout << "Subkategori sudah ada." << endl;
+                    cout << "Masukkan harga barang: ";
+                    cin >> itemPrice;
+
+                    if (cin.fail()) {
+                        cout << "Harga barang harus berupa angka." << endl;
+                        cin.clear();
+                        while (cin.get() != '\n'); 
                         return;
                     }
 
-                    Category* newSubcategory = new Category(subcategoryName);
-                    addSubcategory(parentCategory, newSubcategory);
-                    categoryGraph.addCategory(newSubcategory); // Add sub-category to the graph
-                    categoryGraph.addRelationship(parentCategory, newSubcategory); // Add relationship between parent and sub-category
-                    cout << "Subkategori berhasil ditambahkan." << endl;
+                    cout << "Masukkan jumlah barang: ";
+                    cin >> itemQuantity;
+
+                    if (cin.fail()) {
+                        cout << "Jumlah barang harus berupa angka." << endl;
+                        cin.clear();
+                        while (cin.get() != '\n'); 
+                        return;
+                    }
+
+                    Item* newItem = new Item(itemName, itemPrice, itemQuantity);
+                    addItem(subcategory, newItem);
+                    actionLog.push("Add", itemName, itemQuantity); 
+                    cout << "Barang berhasil ditambahkan." << endl;
                 } else {
-                    cout << "Kategori induk tidak ditemukan." << endl;
+                    cout << "Subkategori tidak ditemukan." << endl;
                 }
-                break;
-            }
-            case 3: {
-                char categoryName[MAX_NAME_LENGTH], subcategoryName[MAX_NAME_LENGTH], itemName[MAX_NAME_LENGTH];
-                double itemPrice;
-                int itemQuantity;
-
-                cout << "Masukkan nama kategori: ";
-                cin.getline(categoryName, MAX_NAME_LENGTH);
-
-                if (isStringEmptyOrSpacesOnly(categoryName)) {
-                    cout << "Nama kategori tidak boleh kosong atau hanya berisi spasi." << endl;
-                    return;
-                }
-
-                Category* category = findCategory(root, categoryName);
-
-                if (category) {
-                    cout << "Masukkan nama subkategori: ";
-                    cin.getline(subcategoryName, MAX_NAME_LENGTH);
-
-                    if (isStringEmptyOrSpacesOnly(subcategoryName)) {
-                        cout << "Nama subkategori tidak boleh kosong atau hanya berisi spasi." << endl;
-                        return;
-                    }
-
-                    Category* subcategory = findCategory(category, subcategoryName);
-
-                    if (subcategory) {
-                        cout << "Masukkan nama barang: ";
-                        cin.getline(itemName, MAX_NAME_LENGTH);
-
-                        if (isStringEmptyOrSpacesOnly(itemName)) {
-                            cout << "Nama barang tidak boleh kosong atau hanya berisi spasi." << endl;
-                            return;
-                        }
-
-                        cout << "Masukkan harga barang: ";
-                        cin >> itemPrice;
-
-                        if (cin.fail()) {
-                            cout << "Harga barang harus berupa angka." << endl;
-                            cin.clear();
-                            while (cin.get() != '\n');
-                            return;
-                        }
-
-                        cout << "Masukkan jumlah barang: ";
-                        cin >> itemQuantity;
-
-                        if (cin.fail()) {
-                            cout << "Jumlah barang harus berupa angka." << endl;
-                            cin.clear();
-                            while (cin.get() != '\n');
-                            return;
-                        }
-
-                        Item* newItem = new Item(itemName, itemPrice, itemQuantity);
-                        addItem(subcategory, newItem);
-                        actionLog.push("Add", itemName, itemQuantity);
-                        cout << "Barang berhasil ditambahkan." << endl;
-                    } else {
-                        cout << "Subkategori tidak ditemukan." << endl;
-                    }
                 } else {
                     cout << "Kategori tidak ditemukan." << endl;
                 }
                 break;
-            }
-            case 0:
-                return;
+                }
+                case 0:
+                return; 
             default:
                 cout << "Pilihan tidak valid." << endl;
         }
@@ -377,7 +375,7 @@ void addOrder() {
     if (cin.fail()) {
         cout << "Jumlah barang harus berupa angka." << endl;
         cin.clear();
-        while (cin.get() != '\n');
+        while (cin.get() != '\n'); // Ignore invalid input
         return;
     }
 
@@ -418,7 +416,7 @@ void printInventory(Category* category, int level = 0) {
         cout << " - " << item->name << " (ID: " << item->id << ", Price: " << item->price << ", Quantity: " << item->quantity << ")" << endl;
     }
 
-    for (Category* subcategory = category->subcategories; subcategory; subcategory = subcategory->next) {
+    for (Category* subcategory = category->subcategories; subcategory; subcategory =  subcategory->next) {
         printInventory(subcategory, level + 1);
     }
 }
@@ -511,13 +509,13 @@ void processOrder(Category* root, Stack& actionLog) {
 
 void undoLastAction(Category* root, Stack& actionLog) {
     if (actionLog.isEmpty()) {
-        cout << "Tidak ada aksi untuk di-undo." << endl;
+         cout << "Tidak ada aksi untuk di-undo." <<  endl;
         return;
     }
 
     StackNode* lastAction = actionLog.peek();
     if (!lastAction) {
-        cout << "Tidak ada aksi untuk di-undo." << endl;
+         cout << "Tidak ada aksi untuk di-undo." <<  endl;
         return;
     }
 
@@ -525,17 +523,17 @@ void undoLastAction(Category* root, Stack& actionLog) {
     if (item) {
         if (areStringsEqual(lastAction->action, "Add")) {
             item->quantity -= lastAction->quantity;
-            cout << "Undo berhasil" << endl;
+             cout << "Undo berhasil" << endl;
         } else if (areStringsEqual(lastAction->action, "Take")) {
             item->quantity += lastAction->quantity;
-            cout << "Undo berhasil" << endl;
+             cout << "Undo berhasil" << endl;
         } else {
-            cout << "Aksi tidak dikenal." << endl;
+             cout << "Aksi tidak dikenal." <<  endl;
             return;
         }
         actionLog.pop();
     } else {
-        cout << "Item tidak ditemukan untuk di-undo." << endl;
+         cout << "Item tidak ditemukan untuk di-undo." <<  endl;
     }
 }
 
@@ -572,32 +570,31 @@ void setCategoryRelationship() {
     }
 }
 
-
 int main() {
     int choice;
     Stack actionLog;
-
-    while (true) {
-        cout << "\nMenu:\n";
-        cout << "1. Inventori\n";
-        cout << "2. Penjualan\n";
-        cout << "0. Keluar\n";
-        cout << "Pilih menu: ";
-        cin >> choice;
+    
+     while (true) {
+         cout << "\nMenu:\n";
+         cout << "1. Inventori\n";
+         cout << "2. Penjualan\n";
+         cout << "0. Keluar\n";
+         cout << "Pilih menu: ";
+         cin >> choice;
 
         switch (choice) {
             case 1:
                 system("cls");
                 while (true) {
-                    cout << "\nMenu Inventori:\n";
-                    cout << "1. Tambahkan Barang Kategori\n";
-                    cout << "2. Tampilkan Inventori\n";
-                    cout << "3. Transaksi\n";
-                    cout << "4. Undo\n";
-                    cout << "5. Relasi\n";
-                    cout << "0. Kembali\n";
-                    cout << "Pilih opsi: ";
-                    cin >> choice;
+                     cout << "\nMenu Inventori:\n";
+                     cout << "1. Tambahkan Barang Kategori\n";
+                     cout << "2. Tampilkan Inventori\n";
+                     cout << "3. Transaksi\n";
+                     cout << "4. Undo\n";
+                     cout << "5. Relasi\n";
+                     cout << "0. Kembali\n";
+                     cout << "Pilih opsi: ";
+                     cin >> choice;
 
                     if (choice == 0) break;
 
@@ -619,8 +616,8 @@ int main() {
                             system("cls");
                             undoLastAction(root, actionLog);
                             break;
-                       case 5:
-                        while (true) {
+                        case 5:
+                            while (true) {
                             cout << "\nMenu Relasi Kategori:\n";
                             cout << "1. Set Relasi Kategori\n";
                             cout << "2. Tampilkan Relasi Kategori\n";
@@ -647,27 +644,24 @@ int main() {
                         }
                         
                         break;
-
-
-
+                        
                         default:
-                            cout << "Opsi tidak valid, coba lagi." << endl;
+                             cout << "Opsi tidak valid, coba lagi." <<  endl;
                     }
                 }
                 system("cls");
                 break;
             case 2:
-                system("cls");
                 while (true) {
-                    cout << "\nMenu Penjualan:\n";
-                    cout << "1. Pesan Barang\n";
-                    cout << "2. Proses Barang\n";
-                    cout << "3. Daftar Pesanan\n";
-                    cout << "4. Transaksi\n";
-                    cout << "5. Undo\n";
-                    cout << "0. Kembali\n";
-                    cout << "Pilih opsi: ";
-                    cin >> choice;
+                     cout << "\nMenu Penjualan:\n";
+                     cout << "1. Pesan Barang\n";
+                     cout << "2. Proses Barang\n";
+                     cout << "3. Daftar Pesanan\n";
+                     cout << "4. Transaksi\n";
+                     cout << "5. Undo\n";
+                     cout << "0. Kembali\n";
+                     cout << "Pilih opsi: ";
+                     cin >> choice;
 
                     if (choice == 0) break;
 
@@ -693,17 +687,17 @@ int main() {
                             undoLastAction(root, actionLog);
                             break;
                         default:
-                            cout << "Opsi tidak valid, coba lagi." << endl;
+                             cout << "Opsi tidak valid, coba lagi." <<  endl;
                     }
                 }
                 system("cls");
                 break;
             case 0:
                 system("cls");
-                cout << "Keluar dari program." << endl;
+                cout << "Keluar dari program." <<  endl;
                 return 0;
             default:
-                cout << "Menu tidak valid, coba lagi." << endl;
+                 cout << "Menu tidak valid, coba lagi." <<  endl;
         }
     }
 
